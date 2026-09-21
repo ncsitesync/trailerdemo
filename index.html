@@ -284,22 +284,65 @@
   .consent input{margin-top:2px;width:18px;height:18px;accent-color:var(--green);flex-shrink:0;}
   .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .opt{position:relative;display:block;}
-  .opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;}
-  .opt span{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;
-    min-height:52px;padding:10px;border-radius:12px;background:#f1eee7;border:1.5px solid transparent;
-    font-weight:700;font-size:.85rem;line-height:1.25;color:var(--ink);transition:background-color .2s,color .2s,border-color .2s;
+  .opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:2;}
+  .opt-face{
+    display:flex;align-items:center;gap:12px;min-height:64px;padding:14px 16px;
+    background:#fff;border:1.5px solid #e2ddd4;border-radius:14px;
+    box-shadow:0 2px 6px rgba(17,20,24,.06);color:#111418;text-align:left;
+    transition:transform .35s var(--spring),box-shadow .18s ease,border-color .18s ease,background-color .18s ease,color .18s ease;
   }
-  .opt small{font-weight:500;font-size:var(--fs-small);color:var(--body);}
-  .opt input:hover+span{background:#e8e4da;}
-  .opt input:checked+span{background:var(--ink);color:#fff;}
-  .opt input:checked+span small{color:#d5d9dd;}
-  .opt input:focus-visible+span{outline:3px solid #1c6fd1;outline-offset:2px;}
+  .opt-ico{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.8;}
+  .opt-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;}
+  .opt-label{font-family:var(--font-display);font-weight:700;font-size:.95rem;line-height:1.25;color:inherit;}
+  .opt-text small{font-size:.8rem;font-weight:500;line-height:1.3;color:#6a7178;}
+  /* empty radio on the right edge; fills yellow with a black tick when selected */
+  .opt-radio{
+    flex:none;position:relative;width:20px;height:20px;border-radius:50%;
+    border:1.5px solid #cfc9bf;background:#fff;
+    transition:background-color .18s ease,border-color .18s ease;
+  }
+  .opt-radio::after{
+    content:"";position:absolute;left:5.5px;top:2px;width:5px;height:9px;
+    border:solid #111418;border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);
+    transition:transform .25s var(--spring);
+  }
+  .opt input:hover+.opt-face{
+    border-color:#ffc82c;transform:translateY(-2px);box-shadow:0 8px 18px rgba(17,20,24,.10);
+    transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background-color .18s ease,color .18s ease;
+  }
+  .opt input:focus-visible+.opt-face{outline:none;border-color:#111418;box-shadow:0 0 0 3px rgba(255,200,44,.55);}
+  .opt input:checked+.opt-face{background:#111418;border-color:#111418;color:#fff;}
+  .opt input:checked+.opt-face .opt-ico{opacity:1;}
+  .opt input:checked+.opt-face .opt-text small{color:#d5d9dd;}
+  .opt input:checked+.opt-face .opt-radio{background:#ffc82c;border-color:#ffc82c;}
+  .opt input:checked+.opt-face .opt-radio::after{transform:rotate(45deg) scale(1);}
+  .opt input:active+.opt-face{transform:scale(.98);transition:transform .1s ease-out;}
   .quiz-err{min-height:1.2em;margin-top:8px;font-size:var(--fs-small);font-weight:700;color:#b42318;}
   .quiz-nav{display:flex;align-items:center;gap:12px;margin-top:10px;}
   .quiz-nav .btn{flex:1;}
-  .link-btn{background:none;border:0;min-height:44px;padding:0 6px;font-weight:800;font-size:.85rem;color:var(--ink);cursor:pointer;}
-  .link-btn:hover{text-decoration:underline;}
+  .quiz-nav .btn-primary{
+    box-shadow:0 8px 20px rgba(255,200,44,.35);
+    transition:background-color .2s ease,color .2s ease,box-shadow .2s ease;
+  }
+  /* disabled until a choice is made: flat, grey, obviously inert */
+  .quiz-nav .btn-primary:disabled,.quiz-nav .btn-primary:disabled:hover{
+    background:#ece8e1;color:#9a9fa4;box-shadow:none;cursor:not-allowed;
+  }
+  .link-btn{
+    display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0 10px 0 4px;
+    background:none;border:0;font-family:var(--font-display);font-weight:600;font-size:.9rem;color:#4a5158;cursor:pointer;
+    transition:color .18s ease;
+  }
+  .link-btn[hidden]{display:none;}
+  .link-btn .icon{width:18px;height:18px;stroke-width:2.4;}
+  .link-btn:hover{color:#111418;}
+  @media (max-width:600px){
+    .opts{grid-template-columns:1fr;}
+    .opt-face{min-height:58px;}
+    .quiz-nav{flex-direction:column;align-items:stretch;gap:4px;}
+    .quiz-nav .link-btn{align-self:flex-start;}
+    .quiz-nav .btn{flex:none;width:100%;}
+  }
   .done{text-align:center;padding:10px 0 4px;}
   .done-badge{width:56px;height:56px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;margin:0 auto 12px;animation:pop .6s var(--spring) both;}
   .done-badge .icon{width:26px;height:26px;stroke-width:3;}
@@ -312,7 +355,9 @@
   .fine{margin-top:12px;font-size:var(--fs-small);color:var(--body);}
 
   /* ---------- services ---------- */
-  .tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:28px;}
+  #services .section-head{margin-bottom:28px;}          /* lead -> tabs */
+  #services .lead{margin-top:12px;}                     /* heading -> lead */
+  .tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:32px;}   /* tabs -> grid */
   .tab{height:38px;padding:0 20px;border-radius:999px;border:1px solid #d6d0c2;background:transparent;color:var(--body);font-weight:700;font-size:.88rem;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s;}
   .tab:hover{border-color:var(--ink);color:var(--ink);}
   .tab[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:var(--ink);}
@@ -320,28 +365,58 @@
   @media (min-width:640px){.cards{grid-template-columns:repeat(2,1fr);}}
   @media (min-width:1024px){.cards{grid-template-columns:repeat(3,1fr);}}
   .card{
-    background:var(--card);border-radius:var(--radius);padding:11px;box-shadow:var(--shadow-card);
+    background:var(--card);border-radius:20px;padding:12px;border:1px solid #ece7df;
+    box-shadow:0 2px 8px rgba(17,20,24,.05);
     display:flex;flex-direction:column;transition:transform .3s var(--ease),box-shadow .3s var(--ease);
   }
-  .card:hover{transform:translateY(-6px);box-shadow:var(--shadow-card-hover);}
+  .card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(17,20,24,.12);}
   .card[hidden]{display:none;}
   .card.swap{animation:rise .45s var(--ease) backwards;}
   .photo{position:relative;aspect-ratio:4/3;border-radius:var(--radius-photo);overflow:hidden;background:#ece8de;}
+  .card .photo{aspect-ratio:16/10;}
   .ph{
     position:absolute;inset:0;display:grid;place-items:center;color:#8b9299;
     background:repeating-linear-gradient(135deg,#f6f3ec 0 14px,#e9e6df 14px 28px);
   }
   .ph .icon{width:34px;height:34px;stroke-width:1.6;transform:translateY(-14%);}
+  /* service-card placeholders: tonal gradient + faint grain + a large line
+     illustration, so they read as deliberate until real photos arrive */
+  .card .ph{transition:transform .4s var(--ease);}
+  .card:hover .ph,.card:hover .photo img{transform:scale(1.03);}
+  .ph-a{background:linear-gradient(135deg,#2b3a4a,#1c2b3a);}
+  .ph-b{background:linear-gradient(135deg,#3a4636,#262f24);}
+  .ph-c{background:linear-gradient(135deg,#4a3d2b,#2f271c);}
+  .card .ph::before{
+    content:"";position:absolute;inset:0;opacity:.06;pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .card .ph .icon{
+    position:relative;width:clamp(84px,40%,140px);height:auto;aspect-ratio:1;
+    color:rgba(255,255,255,.22);stroke-width:.8;transform:translateY(-12%);
+  }
   .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(17,20,24,.78) 0%,rgba(17,20,24,.32) 38%,transparent 62%);pointer-events:none;}
-  .photo .name{position:absolute;left:14px;bottom:12px;right:14px;z-index:1;font-size:1.05rem;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:#fff;}
-  .photo.has-badge .name{right:120px;}
-  .badge{position:absolute;right:12px;bottom:11px;z-index:1;padding:4px 11px;border-radius:999px;background:var(--accent);color:var(--ink);
-    font:italic 600 .8rem Georgia,"Iowan Old Style","Times New Roman",serif;white-space:nowrap;}
-  .card-body{padding:16px 8px 6px;}
-  .card-body h4{font-size:.95rem;margin-bottom:10px;}
-  .checks{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;}
-  .checks li{display:flex;gap:8px;align-items:flex-start;font-size:var(--fs-body);line-height:1.4;color:var(--body);}
-  .checks .icon{width:17px;height:17px;margin-top:1px;padding:3px;border-radius:50%;background:var(--green);color:#fff;stroke-width:3.6;}
+  /* titles own the full bottom edge and may wrap to two lines, never clipped */
+  .photo .name{position:absolute;left:14px;bottom:12px;right:14px;z-index:1;font-size:1.05rem;font-weight:800;letter-spacing:-.01em;line-height:1.15;color:#fff;}
+  /* accent badges live top-right, away from the title */
+  .badge{
+    position:absolute;top:12px;right:12px;z-index:1;display:inline-flex;align-items:center;height:26px;padding:0 11px;
+    border-radius:999px;background:var(--accent);color:var(--ink);white-space:nowrap;
+    font-family:var(--font-display);font-style:italic;font-weight:700;font-size:.72rem;
+    box-shadow:0 4px 10px rgba(0,0,0,.18);
+  }
+  .card-body{padding:16px 8px 8px;flex:1;display:flex;flex-direction:column;}
+  .card-body h4{
+    margin-bottom:10px;font-family:var(--font-display);font-weight:700;font-size:.78rem;
+    text-transform:uppercase;letter-spacing:.1em;line-height:1.3;color:#6a7178;
+  }
+  .checks{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px;}
+  .checks li{display:flex;gap:9px;align-items:flex-start;font-size:.88rem;font-weight:500;line-height:1.4;color:#2b3238;}
+  .checks .icon{width:18px;height:18px;margin-top:1px;padding:4px;border-radius:50%;background:var(--green);color:#fff;stroke-width:3.4;}
+  .card-link{
+    margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:6px;min-height:36px;
+    font-family:var(--font-display);font-weight:700;font-size:.86rem;color:#111418;
+  }
+  .card-link:hover{text-decoration:underline;}
 
   /* ---------- steps ---------- */
   .steps{display:grid;grid-template-columns:1fr;gap:var(--gap);counter-reset:s;}
@@ -360,14 +435,21 @@
     border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-card);background:#dfe6ea;
     cursor:ew-resize;touch-action:pan-y;user-select:none;-webkit-user-select:none;
   }
-  /* only the scene svgs are stretched: a bare ".ba svg" rule also hit the
-     handle's chevron icon and pushed it off-centre */
-  .ba>svg.scene{position:absolute;inset:0;width:100%;height:100%;}
-  /* BEFORE sits on top and is revealed on the LEFT of the divider */
-  .ba>svg.scene.before{clip-path:inset(0 calc(100% - var(--pos,50%)) 0 0);}
+  /* both photos share one box and one object-fit, so the home lines up at every
+     handle position. pointer-events:none + no-drag stop the browser's native
+     image drag from hijacking the slider gesture. */
+  .ba>img.ba-img{
+    position:absolute;inset:0;width:100%;height:100%;max-width:none;
+    object-fit:cover;object-position:center;
+    user-select:none;-webkit-user-select:none;-webkit-user-drag:none;pointer-events:none;
+  }
+  /* BEFORE sits on top and is revealed on the LEFT of the divider: the
+     clip inset (100% - pos) never resizes the image, so nothing squishes */
+  .ba>img.ba-img.before{clip-path:inset(0 calc(100% - var(--pos,50%)) 0 0);}
   .ba-tag{
     position:absolute;top:12px;z-index:3;display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:999px;
     font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff;pointer-events:none;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
   }
   .ba-tag.b{left:12px;background:#111418;}
   .ba-tag.a{right:12px;background:var(--green);}
@@ -446,7 +528,7 @@
   .faq-a p{padding:0 20px 18px;}
 
   /* ---------- footer ---------- */
-  .cta-band{background:var(--ink);color:#fff;text-align:center;padding:56px 0;}
+  .cta-band{background:var(--ink);color:#fff;text-align:center;padding:56px 0 90px;}   /* 90px keeps the sticky call pill off the content */
   .cta-band h2{color:#fff;font-size:var(--fs-h2);}
   .cta-band p{margin-top:10px;color:#d3d7db;font-size:var(--fs-lead);}
   .cta-band .actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:22px;}
@@ -464,7 +546,7 @@
 
   /* ---------- sticky call pill (fades in after the hero) ---------- */
   .call-pill{
-    position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:200;
+    position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:200;
     height:42px;padding:0 22px;border-radius:999px;background:var(--accent);color:var(--ink);
     display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:.86rem;white-space:nowrap;
     box-shadow:0 12px 30px rgba(17,20,24,.28);
@@ -486,6 +568,7 @@
     .section{padding-block:var(--space-section-m);}
     .area,.foot-grid{grid-template-columns:1fr;}
     .foot-grid{gap:26px;}
+    .cards{grid-template-columns:1fr;gap:16px;}   /* services: single column; badges stay top-right */
 
     /* ---- MOBILE HERO: split layout, photo band on top, content below ----
        Normal-flow column: no 100svh, no overflow clip, no absolute image,
@@ -586,6 +669,20 @@
     <symbol id="i-lr" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></symbol>
     <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
     <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="q-single" viewBox="0 0 24 24"><path d="M2 17v-6l4-4h12l4 4v6zM7 12.5h3M14 12.5h3"/></symbol>
+    <symbol id="q-double" viewBox="0 0 24 24"><path d="M1 17v-5l3-3.5h7.5V17zM11.5 17V8.5H19l4 3.5v5zM4.5 13h3M15 13h3"/></symbol>
+    <symbol id="q-level" viewBox="0 0 24 24"><path d="M4 8.5h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2zM10 8.5v7M14 8.5v7M11 12h2"/></symbol>
+    <symbol id="q-blocks" viewBox="0 0 24 24"><path d="M3 20h8v-6H3zM13 20h8v-6h-8zM8 14h8V8H8z"/></symbol>
+    <symbol id="q-anchor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M8.5 11h7M4.5 14c.5 4 3.5 7 7.5 7s7-3 7.5-7"/></symbol>
+    <symbol id="q-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.6a2.5 2.5 0 0 1 5 0c0 1.7-2.5 2-2.5 3.6M12 16.8h.01"/></symbol>
+    <symbol id="q-pin" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+    <symbol id="q-route-short" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h10"/></symbol>
+    <symbol id="q-route" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h5a3 3 0 0 0 0-6h-2a3 3 0 0 1 0-6h5"/></symbol>
+    <symbol id="q-road" viewBox="0 0 24 24"><path d="M8 3 4 21M16 3l4 18M12 4v3M12 10v4M12 17v3"/></symbol>
+    <symbol id="q-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="q-cal" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></symbol>
+    <symbol id="q-cal2" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h8M8 17h5"/></symbol>
+    <symbol id="q-doc" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h4"/></symbol>
   </defs>
 </svg>
 
@@ -689,39 +786,39 @@
           <fieldset class="step" data-step="1" hidden>
             <legend>What do you need?</legend>
             <div class="opts">
-              <label class="opt"><input type="radio" name="need" value="Full Move, Single-Wide"><span>Full Move<small>Single-Wide</small></span></label>
-              <label class="opt"><input type="radio" name="need" value="Full Move, Double-Wide"><span>Full Move<small>Double-Wide</small></span></label>
-              <label class="opt"><input type="radio" name="need" value="Setup &amp; Leveling Only"><span>Setup &amp; Leveling Only</span></label>
-              <label class="opt"><input type="radio" name="need" value="Tear-Down &amp; Re-Block"><span>Tear-Down &amp; Re-Block</span></label>
-              <label class="opt"><input type="radio" name="need" value="Tie-Downs &amp; Skirting"><span>Tie-Downs &amp; Skirting</span></label>
-              <label class="opt"><input type="radio" name="need" value="Not Sure Yet"><span>Not Sure Yet</span></label>
+              <label class="opt"><input type="radio" name="need" value="Full Move, Single-Wide"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-single"/></svg><span class="opt-text"><span class="opt-label">Full Move</span><small>Single-Wide</small></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="need" value="Full Move, Double-Wide"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-double"/></svg><span class="opt-text"><span class="opt-label">Full Move</span><small>Double-Wide</small></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="need" value="Setup &amp; Leveling Only"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-level"/></svg><span class="opt-text"><span class="opt-label">Setup &amp; Leveling Only</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="need" value="Tear-Down &amp; Re-Block"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-blocks"/></svg><span class="opt-text"><span class="opt-label">Tear-Down &amp; Re-Block</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="need" value="Tie-Downs &amp; Skirting"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-anchor"/></svg><span class="opt-text"><span class="opt-label">Tie-Downs &amp; Skirting</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="need" value="Not Sure Yet"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-help"/></svg><span class="opt-text"><span class="opt-label">Not Sure Yet</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
             </div>
           </fieldset>
 
           <fieldset class="step" data-step="2" hidden>
             <legend>How far is the move?</legend>
             <div class="opts">
-              <label class="opt"><input type="radio" name="dist" value="Same property"><span>Same property</span></label>
-              <label class="opt"><input type="radio" name="dist" value="Under 50 miles"><span>Under 50 miles</span></label>
-              <label class="opt"><input type="radio" name="dist" value="50-150 miles"><span>50&ndash;150 miles</span></label>
-              <label class="opt"><input type="radio" name="dist" value="Over 150 miles"><span>Over 150 miles</span></label>
+              <label class="opt"><input type="radio" name="dist" value="Same property"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-pin"/></svg><span class="opt-text"><span class="opt-label">Same property</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="dist" value="Under 50 miles"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-route-short"/></svg><span class="opt-text"><span class="opt-label">Under 50 miles</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="dist" value="50-150 miles"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-route"/></svg><span class="opt-text"><span class="opt-label">50&ndash;150 miles</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="dist" value="Over 150 miles"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-road"/></svg><span class="opt-text"><span class="opt-label">Over 150 miles</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
             </div>
           </fieldset>
 
           <fieldset class="step" data-step="3" hidden>
             <legend>When do you need it done?</legend>
             <div class="opts">
-              <label class="opt"><input type="radio" name="when" value="Within a week"><span>Within a week</span></label>
-              <label class="opt"><input type="radio" name="when" value="This month"><span>This month</span></label>
-              <label class="opt"><input type="radio" name="when" value="Next 2-3 months"><span>Next 2&ndash;3 months</span></label>
-              <label class="opt"><input type="radio" name="when" value="Just pricing it out"><span>Just pricing it out</span></label>
+              <label class="opt"><input type="radio" name="when" value="Within a week"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-clock"/></svg><span class="opt-text"><span class="opt-label">Within a week</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="when" value="This month"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-cal"/></svg><span class="opt-text"><span class="opt-label">This month</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="when" value="Next 2-3 months"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#q-cal2"/></svg><span class="opt-text"><span class="opt-label">Next 2&ndash;3 months</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
+              <label class="opt"><input type="radio" name="when" value="Just pricing it out"><span class="opt-face"><svg class="opt-ico" aria-hidden="true"><use href="#i-tag"/></svg><span class="opt-text"><span class="opt-label">Just pricing it out</span></span><i class="opt-radio" aria-hidden="true"></i></span></label>
             </div>
           </fieldset>
 
           <p class="quiz-err" id="quizErr" role="alert"></p>
           <div class="quiz-nav">
-            <button class="link-btn" id="quizBack" type="button" hidden>&lsaquo; Back</button>
-            <button class="btn btn-primary" id="quizNext" type="submit">Continue</button>
+            <button class="link-btn" id="quizBack" type="button" hidden><svg class="icon" aria-hidden="true"><use href="#i-left"/></svg>Back</button>
+            <button class="btn btn-primary" id="quizNext" type="submit">Continue <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
           </div>
         </form>
 
@@ -753,34 +850,34 @@
 
       <div class="cards" id="cards">
         <article class="card reveal" data-cat="moves">
-          <div class="photo has-badge"><div class="ph" role="img" aria-label="Photo placeholder: a single-wide home on a flatbed leaving its lot"><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg></div><h3 class="name">Single-Wide Transport</h3><span class="badge">Most Requested</span></div>
+          <div class="photo"><div class="ph ph-a" role="img" aria-label="Photo placeholder: a single-wide home on a flatbed leaving its lot"><svg class="icon" aria-hidden="true"><use href="#q-single"/></svg></div><h3 class="name">Single-Wide Transport</h3><span class="badge">Most Requested</span></div>
           <div class="card-body"><h4>What&rsquo;s Included</h4>
-            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>NCDOT permits filed</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Licensed pilot car</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Full liability cover</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Free on-site estimate</li></ul></div>
+            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>NCDOT permits filed</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Licensed pilot car</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Full liability cover</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Free on-site estimate</li></ul><a class="card-link" href="#quote" data-service="Full Move, Single-Wide">Get a quote <span aria-hidden="true">&rarr;</span></a></div>
         </article>
         <article class="card reveal" data-cat="moves">
-          <div class="photo"><div class="ph" role="img" aria-label="Photo placeholder: two double-wide sections staged for a highway haul"><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg></div><h3 class="name">Double-Wide Transport</h3></div>
+          <div class="photo"><div class="ph ph-b" role="img" aria-label="Photo placeholder: two double-wide sections staged for a highway haul"><svg class="icon" aria-hidden="true"><use href="#q-double"/></svg></div><h3 class="name">Double-Wide Transport</h3></div>
           <div class="card-body"><h4>What&rsquo;s Included</h4>
-            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Matched two-section haul</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Coordinated escorts</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Marriage-line seal</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Insured end to end</li></ul></div>
+            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Matched two-section haul</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Coordinated escorts</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Marriage-line seal</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Insured end to end</li></ul><a class="card-link" href="#quote" data-service="Full Move, Double-Wide">Get a quote <span aria-hidden="true">&rarr;</span></a></div>
         </article>
         <article class="card reveal" data-cat="setup">
-          <div class="photo has-badge"><div class="ph" role="img" aria-label="Photo placeholder: a crew laser-leveling a home on fresh piers"><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg></div><h3 class="name">Setup &amp; Leveling</h3><span class="badge">Best Value</span></div>
+          <div class="photo"><div class="ph ph-c" role="img" aria-label="Photo placeholder: a crew laser-leveling a home on fresh piers"><svg class="icon" aria-hidden="true"><use href="#q-level"/></svg></div><h3 class="name">Setup &amp; Leveling</h3><span class="badge">Best Value</span></div>
           <div class="card-body"><h4>What&rsquo;s Included</h4>
-            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pier &amp; block base</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Laser-checked level</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Anchors set</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Hookup help</li></ul></div>
+            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pier &amp; block base</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Laser-checked level</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Anchors set</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Hookup help</li></ul><a class="card-link" href="#quote" data-service="Setup &amp; Leveling Only">Get a quote <span aria-hidden="true">&rarr;</span></a></div>
         </article>
         <article class="card reveal" data-cat="setup addon" hidden>
-          <div class="photo"><div class="ph" role="img" aria-label="Photo placeholder: an empty pad after a home has been taken down and moved"><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg></div><h3 class="name">Tear-Down &amp; Re-Block</h3></div>
+          <div class="photo"><div class="ph ph-c" role="img" aria-label="Photo placeholder: an empty pad after a home has been taken down and moved"><svg class="icon" aria-hidden="true"><use href="#q-blocks"/></svg></div><h3 class="name">Tear-Down &amp; Re-Block</h3></div>
           <div class="card-body"><h4>What&rsquo;s Included</h4>
-            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Full disassembly</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Skirting &amp; steps off</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Piers reset on site</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pad cleanup</li></ul></div>
+            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Full disassembly</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Skirting &amp; steps off</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Piers reset on site</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pad cleanup</li></ul><a class="card-link" href="#quote" data-service="Tear-Down &amp; Re-Block">Get a quote <span aria-hidden="true">&rarr;</span></a></div>
         </article>
         <article class="card reveal" data-cat="moves addon" hidden>
-          <div class="photo"><div class="ph" role="img" aria-label="Photo placeholder: a pilot car leading an oversize load at dawn"><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg></div><h3 class="name">Permits &amp; Escort</h3></div>
+          <div class="photo"><div class="ph ph-a" role="img" aria-label="Photo placeholder: a pilot car leading an oversize load at dawn"><svg class="icon" aria-hidden="true"><use href="#q-doc"/></svg></div><h3 class="name">Permits &amp; Escort</h3></div>
           <div class="card-body"><h4>What&rsquo;s Included</h4>
-            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>NCDOT permit filing</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Route survey</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pilot car booking</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Wire-height checks</li></ul></div>
+            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>NCDOT permit filing</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Route survey</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pilot car booking</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Wire-height checks</li></ul><a class="card-link" href="#quote">Get a quote <span aria-hidden="true">&rarr;</span></a></div>
         </article>
         <article class="card reveal" data-cat="setup addon" hidden>
-          <div class="photo"><div class="ph" role="img" aria-label="Photo placeholder: fresh vinyl skirting and anchor straps on a finished home"><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg></div><h3 class="name">Tie-Downs &amp; Skirting</h3></div>
+          <div class="photo"><div class="ph ph-b" role="img" aria-label="Photo placeholder: fresh vinyl skirting and anchor straps on a finished home"><svg class="icon" aria-hidden="true"><use href="#q-anchor"/></svg></div><h3 class="name">Tie-Downs &amp; Skirting</h3></div>
           <div class="card-body"><h4>What&rsquo;s Included</h4>
-            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Code-rated anchors</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Vinyl skirting fitted</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Vent &amp; access panel</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Inspection-ready</li></ul></div>
+            <ul class="checks"><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Code-rated anchors</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Vinyl skirting fitted</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Vent &amp; access panel</li><li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Inspection-ready</li></ul><a class="card-link" href="#quote" data-service="Tie-Downs &amp; Skirting">Get a quote <span aria-hidden="true">&rarr;</span></a></div>
         </article>
       </div>
     </div>
@@ -812,95 +909,17 @@
         <p class="lead">Drag the handle to compare an old setup with the same home after releveling.</p>
       </div>
       <div class="ba reveal" id="baBox" style="--pos:50%" role="slider" tabindex="0" aria-label="Before and after comparison" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50% before, 50% after">
-        <!-- AFTER: the full-frame base layer. It also carries the shared defs
-             (backdrop, house) that the BEFORE layer reuses, so both sides are
-             literally the same drawing and only the details below differ. -->
-        <svg class="scene after" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <defs>
-            <linearGradient id="ba-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9cde6"/><stop offset="1" stop-color="#e8f1f6"/></linearGradient>
-            <!-- before: desaturated + a touch darker; after: warmer + brighter -->
-            <filter id="ba-dull" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values=".55"/><feComponentTransfer><feFuncR type="linear" slope=".93"/><feFuncG type="linear" slope=".93"/><feFuncB type="linear" slope=".93"/></feComponentTransfer></filter>
-            <filter id="ba-warm" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1.07 0 0 0 .012  0 1.03 0 0 .008  0 0 .93 0 0  0 0 0 1 0"/></filter>
-
-            <!-- shared backdrop: sky + distant tree line (identical both sides) -->
-            <g id="ba-backdrop">
-              <rect width="800" height="304" fill="url(#ba-sky)"/>
-              <g fill="#8fae86"><circle cx="40" cy="292" r="34"/><circle cx="96" cy="298" r="28"/><circle cx="700" cy="290" r="36"/><circle cx="760" cy="296" r="30"/><circle cx="640" cy="300" r="24"/><circle cx="150" cy="302" r="20"/></g>
-            </g>
-
-            <!-- shared home: same single-wide, same size, same x/y on both sides -->
-            <g id="ba-house">
-              <polygon points="146,204 400,144 654,204" fill="#66707a"/>
-              <rect x="146" y="202" width="508" height="7" fill="#59626b"/>
-              <rect x="170" y="209" width="460" height="95" fill="#e6e1d3"/>
-              <path d="M170 220h460M170 232h460M170 244h460M170 256h460M170 268h460M170 280h460M170 292h460" stroke="#d3cdbd" stroke-width="1.5" fill="none"/>
-              <g fill="#fff"><rect x="211" y="224" width="82" height="58"/><rect x="327" y="224" width="82" height="58"/></g>
-              <g fill="#9fbfd3"><rect x="216" y="229" width="72" height="48"/><rect x="332" y="229" width="72" height="48"/></g>
-              <path d="M252 229v48M368 229v48M216 253h72M332 253h72" stroke="#fff" stroke-width="3"/>
-              <rect x="450" y="216" width="64" height="88" fill="#cfc9b8"/>
-              <rect x="456" y="222" width="52" height="82" fill="#2f343a"/>
-              <rect x="440" y="324" width="86" height="7" fill="#9a8b73"/><rect x="432" y="331" width="102" height="7" fill="#8a7b64"/>
-              <rect x="170" y="304" width="460" height="3" fill="#b9b3a3"/>
-            </g>
-          </defs>
-
-          <g filter="url(#ba-warm)">
-            <use href="#ba-backdrop"/>
-            <!-- ground: healthy grass, mown bands, trimmed edge -->
-            <rect y="300" width="800" height="150" fill="#74a84c"/>
-            <rect y="352" width="800" height="18" fill="#7fb356"/><rect y="392" width="800" height="18" fill="#7fb356"/>
-            <!-- skirting: eight uniform panels + new blocks along the base -->
-            <g fill="#d3ccba"><rect x="170" y="307" width="56.5" height="31"/><rect x="228" y="307" width="56.5" height="31"/><rect x="285.5" y="307" width="56.5" height="31"/><rect x="343" y="307" width="56.5" height="31"/><rect x="400.5" y="307" width="56.5" height="31"/><rect x="458" y="307" width="56.5" height="31"/><rect x="515.5" y="307" width="56.5" height="31"/><rect x="573" y="307" width="57" height="31"/></g>
-            <rect x="170" y="307" width="460" height="3" fill="#bdb6a3"/>
-            <g fill="#c6c6c2" stroke="#a3a39f" stroke-width="1.5"><rect x="182" y="338" width="34" height="14"/><rect x="282" y="338" width="34" height="14"/><rect x="384" y="338" width="34" height="14"/><rect x="484" y="338" width="34" height="14"/><rect x="584" y="338" width="34" height="14"/></g>
-            <rect x="150" y="354" width="500" height="4" rx="2" fill="#4d7f34"/>
-            <use href="#ba-house"/>
-            <!-- door: square and closed -->
-            <rect x="456" y="222" width="52" height="82" fill="#7a4f2a"/>
-            <path d="M462 230h40v28h-40zM462 264h40v34h-40z" fill="none" stroke="#95683d" stroke-width="2"/>
-            <circle cx="499" cy="268" r="2.6" fill="#e8c96a"/>
-          </g>
-        </svg>
-
-        <!-- BEFORE: clipped to the left of the divider -->
-        <svg class="scene before" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <g filter="url(#ba-dull)">
-            <use href="#ba-backdrop"/>
-            <!-- ground: patchy dirt -->
-            <rect y="300" width="800" height="150" fill="#a3906f"/>
-            <g><ellipse cx="120" cy="372" rx="92" ry="20" fill="#8f7c5d"/><ellipse cx="330" cy="412" rx="112" ry="18" fill="#b5a281"/><ellipse cx="570" cy="374" rx="84" ry="15" fill="#8c7a5c"/><ellipse cx="710" cy="418" rx="92" ry="16" fill="#ad9a79"/><ellipse cx="480" cy="350" rx="60" ry="8" fill="#94825f"/></g>
-            <!-- the home sags toward the right (door/steps) end -->
-            <g transform="rotate(2.5 400 304)">
-              <!-- skirting: uneven heights, one panel missing, one hanging -->
-              <rect x="285.5" y="307" width="56.5" height="34" fill="#2b2a28"/>
-              <g fill="#8b8d8f" stroke="#6d6f71"><rect x="298" y="326" width="30" height="15" transform="rotate(7 313 333)"/><rect x="303" y="313" width="22" height="13" transform="rotate(-6 314 320)"/></g>
-              <g>
-                <rect x="170" y="307" width="56.5" height="30" fill="#b7b1a0"/>
-                <g transform="rotate(-11 228 307)"><rect x="228" y="307" width="56.5" height="31" fill="#a59f8e"/></g>
-                <rect x="343" y="307" width="56.5" height="35" fill="#bdb7a5"/>
-                <rect x="400.5" y="307" width="56.5" height="28" fill="#aaa493"/>
-                <rect x="458" y="307" width="56.5" height="33" fill="#b3ad9c"/>
-                <rect x="515.5" y="307" width="56.5" height="36" fill="#a8a291"/>
-                <rect x="573" y="307" width="57" height="38" fill="#b0aa99"/>
-              </g>
-              <use href="#ba-house"/>
-              <!-- door: racked out of square, wedge gap showing at the top -->
-              <polygon points="456,222 508,231 508,304 456,304" fill="#6f5a44"/>
-              <circle cx="499" cy="270" r="2.6" fill="#b9a56a"/>
-              <!-- cracks by the low corner -->
-              <path d="M598 312l8 10-6 8 9 9M614 320l10 4-3 9" stroke="#3a3833" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </g>
-            <path d="M604 350l14 12 10-5 12 9" stroke="#5f5548" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <!-- weeds -->
-            <g stroke="#7f8a4a" stroke-width="3" fill="none" stroke-linecap="round"><path d="M96 350l-4-14M96 350l4-13M100 350l9-10"/><path d="M312 352l-3-12M312 352l5-12M316 352l8-8"/><path d="M566 356l-4-13M566 356l3-14M570 356l9-9"/><path d="M690 348l-3-11M690 348l6-11"/></g>
-          </g>
-        </svg>
+        <!-- AFTER is the full-width base layer; BEFORE sits on top and is revealed
+             with clip-path (never by changing its width), so neither photo can
+             squish or shift while the handle moves. Both share identical box and
+             object-fit so the home lines up. -->
+        <img class="ba-img after" src="after.png" alt="Same mobile home after releveling, level with new skirting" loading="lazy" decoding="async" draggable="false">
+        <img class="ba-img before" src="before.png" alt="Mobile home before releveling, visibly sagging with uneven skirting" loading="lazy" decoding="async" draggable="false">
 
         <span class="ba-tag b">Before</span><span class="ba-tag a">After</span>
         <div class="ba-line"></div>
         <div class="ba-knob"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5"/></svg></div>
       </div>
-      <p class="ba-cap">Illustration for the demo. Swap in your own before and after photos.</p>
     </div>
   </section>
 
@@ -1179,10 +1198,17 @@
     $('#progressFill').style.width = ((i + 1) * 25) + '%';
     $('#progressBar').setAttribute('aria-valuenow', i + 1);
     back.hidden = i === 0;
-    next.textContent = i === 3 ? 'Get My Estimate' : 'Continue';
+    next.innerHTML = (i === 3 ? 'Get My Estimate' : 'Continue') + ' <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg>';
     err.textContent = '';
+    syncNext();
     if (focus){ var f = $('input', steps[i]); if (f) f.focus({preventScroll:true}); }
   }
+  /* option steps: Continue stays disabled until something is picked */
+  function syncNext(){
+    var n = ['', 'need', 'dist', 'when'][cur];
+    next.disabled = cur > 0 && !form.querySelector('input[name=' + n + ']:checked');
+  }
+  form.addEventListener('change', function(){ err.textContent = ''; syncNext(); });
   function valid(i){
     if (i === 0){
       if ($('#qName').value.trim().length < 2){ err.textContent = 'Please enter your name.'; $('#qName').focus(); return false; }
@@ -1206,6 +1232,15 @@
     form.hidden = true; $('#quizDone').hidden = false; $('#quizDone').focus({preventScroll:true});
   });
   back.addEventListener('click', function(){ if (cur > 0) show(cur - 1, true); });
+  /* service cards: "Get a quote" jumps to the form and preselects that service for step 2 */
+  $$('.card-link[data-service]').forEach(function(a){
+    a.addEventListener('click', function(){
+      if (form.hidden) return;
+      $$('input[name=need]', form).forEach(function(r){
+        if (r.value === a.dataset.service){ r.checked = true; r.dispatchEvent(new Event('change', {bubbles:true})); }
+      });
+    });
+  });
   show(0, false);
 })();
 </script>
