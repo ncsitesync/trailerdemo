@@ -122,7 +122,7 @@
     font-weight:900;font-size:.95rem;text-transform:uppercase;letter-spacing:-.02em;white-space:nowrap;}
   .logo-mark{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--accent);display:grid;place-items:center;}
   .logo-mark .icon{width:18px;height:18px;}
-  .logo .short{display:none;}
+  .logo .mid{display:none;}
   .nav{flex:1;display:flex;justify-content:center;}
   .nav-list{display:flex;gap:26px;}
   .nav-list a{position:relative;display:inline-block;padding:.45em 0;font-weight:700;font-size:.86rem;color:var(--ink);}
@@ -282,6 +282,16 @@
   .field input:focus-visible{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,20,24,.12);}
   .consent{display:flex;gap:10px;align-items:flex-start;font-size:var(--fs-small);line-height:1.45;color:var(--body);cursor:pointer;margin-top:4px;}
   .consent input{margin-top:2px;width:18px;height:18px;accent-color:var(--green);flex-shrink:0;}
+  /* grid-rows expand (not height:auto) so the reveal is smooth */
+  .reveal-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .42s cubic-bezier(.22,1,.36,1);}
+  .reveal-wrap.open{grid-template-rows:1fr;}
+  .reveal-inner{min-height:0;overflow:hidden;margin:0 -4px;}
+  .rv{padding:4px;opacity:0;transform:translateY(6px);transition:opacity .42s cubic-bezier(.22,1,.36,1),transform .42s cubic-bezier(.22,1,.36,1);}
+  .reveal-wrap.open .rv{opacity:1;transform:none;}
+  .reveal-wrap.open .rv2{transition-delay:.06s;}   /* phone first, consent 60ms later */
+  @media (prefers-reduced-motion:reduce){
+    .reveal-wrap,.rv{transition:none!important;transition-delay:0s!important;}
+  }
   .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .opt{position:relative;display:block;}
   .opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:2;}
@@ -668,6 +678,8 @@
   @media (max-width:900px){
     .nav,.header-phone{display:none;}
     .menu-btn{display:inline-flex;}
+    .logo .full{display:none;}
+    .logo .mid{display:inline;font-size:clamp(.8rem,3.6vw,.88rem);}   /* same weight/tracking as desktop */
     .section{padding-block:var(--space-section-m);}
     .area,.foot-grid{grid-template-columns:1fr;}
     .foot-grid{gap:26px;}
@@ -733,12 +745,25 @@
     .hero-actions .btn-dark .icon{width:16px;height:16px;}
     .call-or{display:inline;}
 
-    .call-pill{left:16px;right:16px;height:48px;justify-content:center;}
+    /* floating circular phone button instead of a full-width bar */
+    .call-pill{
+      left:auto;right:18px;width:58px;height:58px;padding:0;gap:0;justify-content:center;border-radius:50%;
+      box-shadow:0 10px 24px rgba(17,20,24,.25);
+    }
+    .call-pill .call-text{display:none;}
+    .call-pill .icon{width:24px;height:24px;}
+    /* one gentle attention ring the first time it appears (class added once by JS) */
+    .call-pill::after{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid #ffc82c;opacity:0;pointer-events:none;}
+    .call-pill.pulse::after{animation:callRing .7s ease-out .2s 1;}
+    .cta-band{padding-bottom:56px;}   /* no longer reserving room for a full-width bar */
   }
+  @keyframes callRing{from{opacity:.7;transform:scale(1)}to{opacity:0;transform:scale(1.7)}}
   @media (max-width:480px){
-    .logo .full{display:none;}
-    .logo .short{display:inline;}
     .announce{padding-inline:44px;}
+    /* keep the longer wordmark beside the Menu button without wrapping */
+    .header-capsule{padding:0 8px 0 14px;gap:10px;}
+    .logo{gap:8px;min-width:0;}
+    .menu-btn{padding:0 12px;}
     .announce p{font-size:.76rem;}
     .opts{grid-template-columns:1fr;}
     .quiz-card{padding:22px 18px;}
@@ -805,7 +830,7 @@
   <div class="header-capsule">
     <a class="logo" href="#top" aria-label="Carolina Home Transport, home">
       <span class="logo-mark"><svg class="icon" aria-hidden="true"><use href="#i-truck"/></svg></span>
-      <span class="full">Carolina Home Transport</span><span class="short">CHT</span>
+      <span class="full">Carolina Home Transport</span><span class="mid">Carolina Transport</span>
     </a>
     <nav class="nav" aria-label="Primary">
       <ul class="nav-list">
@@ -886,8 +911,13 @@
           <fieldset class="step" data-step="0">
             <legend>Who should we call?</legend>
             <div class="field"><label for="qName">Your name</label><input id="qName" name="name" type="text" autocomplete="name" placeholder="First and last name"></div>
-            <div class="field"><label for="qPhone">Best phone number</label><input id="qPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(919) 555-0100"></div>
-            <label class="consent"><input type="checkbox" id="qSms" checked><span>Text me about my estimate. Message and data rates may apply; reply STOP any time.</span></label>
+            <!-- revealed on the first keystroke in the name field (grid-rows 0fr -> 1fr) -->
+            <div class="reveal-wrap" id="step1More" aria-hidden="true">
+              <div class="reveal-inner">
+                <div class="rv rv1"><div class="field"><label for="qPhone">Best phone number</label><input id="qPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(919) 555-0100" tabindex="-1"></div></div>
+                <div class="rv rv2"><label class="consent"><input type="checkbox" id="qSms" checked tabindex="-1"><span>Text me about my estimate. Message and data rates may apply; reply STOP any time.</span></label></div>
+              </div>
+            </div>
           </fieldset>
 
           <fieldset class="step" data-step="1" hidden>
@@ -1216,7 +1246,7 @@
   </div>
 </footer>
 
-<a class="call-pill" id="callPill" href="tel:+19195550142" aria-label="Call Carolina Home Transport now"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>Call Now &mdash; (919) 555-0142</a>
+<a class="call-pill" id="callPill" href="tel:+19195550142" aria-label="Call Carolina Home Transport at (919) 555-0142"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><span class="call-text">Call Now &mdash; (919) 555-0142</span></a>
 
 <script>
 (function(){
@@ -1263,7 +1293,12 @@
   /* ---- sticky call pill: only after the hero has scrolled away ---- */
   var pill = $('#callPill'), hero = $('#hero');
   if ('IntersectionObserver' in window){
-    new IntersectionObserver(function(en){ pill.classList.toggle('show', !en[0].isIntersecting); }, {threshold:0}).observe(hero);
+    var pulsed = false;
+    new IntersectionObserver(function(en){
+      var show = !en[0].isIntersecting;
+      pill.classList.toggle('show', show);
+      if (show && !pulsed){ pulsed = true; pill.classList.add('pulse'); }   /* first appearance only */
+    }, {threshold:0}).observe(hero);
   } else { pill.classList.add('show'); }
 
   /* ---- scroll reveal ---- */
@@ -1465,9 +1500,32 @@
   }
   /* option steps: Continue stays disabled until something is picked */
   function syncNext(){
+    if (cur === 0){
+      next.disabled = !($('#qName').value.trim().length >= 2 && $('#qPhone').value.replace(/\D/g, '').length === 10);
+      return;
+    }
     var n = ['', 'need', 'dist', 'when'][cur];
-    next.disabled = cur > 0 && !form.querySelector('input[name=' + n + ']:checked');
+    next.disabled = !form.querySelector('input[name=' + n + ']:checked');
   }
+  /* step 1: stay collapsed until the first character in the name field, then stay open */
+  var more = $('#step1More'), moreFields = $('input', more), moreOpen = false;
+  function openMore(){
+    if (moreOpen) return;
+    moreOpen = true;
+    more.classList.add('open');
+    more.removeAttribute('aria-hidden');
+    moreFields.forEach(function(i){ i.removeAttribute('tabindex'); });
+  }
+  function fmtPhone(v){
+    var d = v.replace(/\D/g, '');
+    if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+    d = d.slice(0, 10);
+    if (d.length > 6) return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+    if (d.length > 3) return '(' + d.slice(0, 3) + ') ' + d.slice(3);
+    return d.length ? '(' + d : '';
+  }
+  $('#qName').addEventListener('input', function(){ if (this.value.length >= 1) openMore(); err.textContent = ''; syncNext(); });
+  $('#qPhone').addEventListener('input', function(){ this.value = fmtPhone(this.value); err.textContent = ''; syncNext(); });
   form.addEventListener('change', function(){ err.textContent = ''; syncNext(); });
   function valid(i){
     if (i === 0){
