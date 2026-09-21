@@ -418,14 +418,117 @@
   }
   .card-link:hover{text-decoration:underline;}
 
-  /* ---------- steps ---------- */
-  .steps{display:grid;grid-template-columns:1fr;gap:var(--gap);counter-reset:s;}
-  @media (min-width:640px){.steps{grid-template-columns:repeat(2,1fr);}}
-  @media (min-width:1024px){.steps{grid-template-columns:repeat(4,1fr);}}
-  .steps li{background:var(--card);border-radius:var(--radius);padding:22px 20px;box-shadow:var(--shadow-card);transition:transform .3s var(--ease),box-shadow .3s var(--ease);}
-  .steps li:hover{transform:translateY(-6px);box-shadow:var(--shadow-card-hover);}
-  .steps li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--accent);font-weight:900;margin-bottom:14px;}
-  .steps h3{font-size:1.05rem;margin-bottom:6px;}
+  /* ---------- how a move works: straight road rail on the left, cards take focus ---------- */
+  .how{background:#f7f5f1;padding-block:72px;}
+  .pill-eyebrow{
+    display:inline-flex;align-items:center;height:26px;padding:0 12px;margin-bottom:12px;border-radius:999px;
+    background:#111418;color:#ffc82c;font-family:var(--font-display);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  }
+  .how .section-head{margin-bottom:28px;}
+
+  /* 72px rail | cards. Same structure on mobile, with a 44px rail. */
+  .route{
+    --rail:72px;--wp:40px;--truck:24px;
+    position:relative;max-width:820px;margin-inline:auto;
+    display:grid;grid-template-columns:var(--rail) minmax(0,1fr);
+  }
+  .route-rail{position:absolute;left:0;top:0;bottom:0;width:var(--rail);pointer-events:none;z-index:0;}
+  .rail-svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;}
+  .rail-svg line{stroke-linecap:round;}
+  #roadBase{stroke:#e4ded4;stroke-width:8;}
+  #roadCenter{stroke:#ffc82c;stroke-width:2;stroke-dasharray:8 10;stroke-linecap:butt;}
+  /* solid yellow progress grows down over the grey rail (scaleY from the top) */
+  .rail-fill{position:absolute;width:8px;border-radius:4px;background:#ffc82c;transform-origin:top;transform:scaleY(1);will-change:transform;}
+  .route-truck{position:absolute;left:0;top:0;z-index:3;width:var(--truck);height:var(--truck);will-change:transform;}
+  .route-truck svg{display:block;width:100%;height:100%;}
+
+  .route-sign{
+    position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:34px;border-radius:8px;
+    background:#1a8049;color:#fff;border:2px solid #fff;box-shadow:0 0 0 2px #1a8049,0 4px 12px rgba(17,20,24,.15);
+    font-family:var(--font-display);font-weight:700;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+  }
+  .route-sign .icon{width:16px;height:16px;stroke-width:2.4;}
+  .route-sign.start{grid-column:1;grid-row:1;width:var(--rail);padding:0;justify-self:start;}
+  .route-sign.end{grid-column:1 / -1;grid-row:3;justify-self:start;padding:0 14px;margin-top:24px;}
+
+  .route-steps{grid-column:2;grid-row:1 / span 2;position:relative;z-index:1;display:grid;gap:20px;padding-top:52px;}
+  .rstep{position:relative;}
+
+  /* waypoint: sits in the rail, level with its card's title */
+  .wp{
+    position:absolute;left:calc(var(--rail) * -1 + (var(--rail) - var(--wp)) / 2);top:59px;z-index:2;
+    width:var(--wp);height:var(--wp);border-radius:50%;background:#fff;border:2.5px solid #dcd6cc;
+    display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:1.05rem;color:#111418;
+    transition:background-color .4s cubic-bezier(.22,1,.36,1),border-color .4s cubic-bezier(.22,1,.36,1);
+  }
+  /* 16px connector from the waypoint to the card's left edge */
+  .wp::before{
+    content:"";position:absolute;left:calc(100% + 2.5px);top:50%;width:calc((var(--rail) - var(--wp)) / 2);height:2px;margin-top:-1px;
+    background:#e4ded4;transition:background-color .4s cubic-bezier(.22,1,.36,1);
+  }
+  /* one soft ring pulse on arrival */
+  .wp::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:3px solid #ffc82c;opacity:0;pointer-events:none;}
+  .rstep.reached .wp{background:#ffc82c;border-color:#ffc82c;}
+  .rstep.reached .wp::before{background:#ffc82c;}
+  .rstep.reached .wp::after{animation:wpRing .4s cubic-bezier(.22,1,.36,1) 1;}
+  @keyframes wpRing{from{opacity:.75;transform:scale(1)}to{opacity:0;transform:scale(1.7)}}
+
+  /* The card surface is its own layer. "Not yet reached" is a lighter surface
+     (#faf8f4) with no shadow; reached cards go white with the normal shadow.
+     Text is never faded, so every card stays fully legible. The active step
+     gets a yellow left edge + stronger shadow. */
+  .rcard{position:relative;isolation:isolate;padding:26px 30px;}
+  .rcard::before{
+    content:"";position:absolute;inset:0;z-index:-1;background:#fff;border:1px solid #ece7df;border-radius:20px;
+    box-shadow:0 2px 10px rgba(17,20,24,.05);
+    transition:box-shadow .5s cubic-bezier(.22,1,.36,1),border-color .5s cubic-bezier(.22,1,.36,1);
+  }
+  .route-js .rcard{transform:translateY(8px);transition:transform .5s cubic-bezier(.22,1,.36,1);}
+  .route-js .rcard::before{background:#faf8f4;box-shadow:none;transition:background-color .5s cubic-bezier(.22,1,.36,1),box-shadow .5s cubic-bezier(.22,1,.36,1),border-color .5s cubic-bezier(.22,1,.36,1);}
+  .route-js .rstep.reached .rcard{transform:none;}
+  .route-js .rstep.reached .rcard::before{background:#fff;box-shadow:0 2px 10px rgba(17,20,24,.05);}
+  .rstep.active .rcard::before,.route-js .rstep.active .rcard::before{border-left:3px solid #ffc82c;box-shadow:0 10px 28px rgba(17,20,24,.10);}
+
+  .rtop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px 0 9px;border-radius:999px;
+    background:#efe9df;color:#111418;font-size:.8rem;font-weight:700;
+  }
+  .chip .icon{width:15px;height:15px;stroke-width:2.2;}
+  .count{font-size:.84rem;font-weight:600;color:#4a5158;white-space:nowrap;}
+  .rcard h3{font-family:var(--font-display);font-weight:800;font-size:1.35rem;line-height:1.2;color:#0b0d10;margin-bottom:8px;}
+  .rcard p{font-size:1.05rem;font-weight:500;line-height:1.65;color:#2b3238;}
+  .how .lead{color:#3a4148;font-weight:500;}
+
+  /* You do | We do: side by side on desktop; "We do" is the heavier lift */
+  .split{display:grid;grid-template-columns:1fr 1fr;margin-top:18px;padding-top:16px;border-top:1px solid #ece7df;}
+  .split .you{padding:12px 16px 12px 0;border-right:1px solid #ece7df;}   /* same 12px top/bottom as the We-do panel so labels and answers share baselines */
+  .split .we{margin-left:16px;padding:12px;background:#fbf8f2;border-radius:12px;}
+  .split dt{display:flex;align-items:center;gap:6px;margin-bottom:3px;font-family:var(--font-display);font-weight:800;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:#111418;}
+  .split dt .icon{width:16px;height:16px;stroke-width:2;}
+  .split dd{margin:0;font-size:1rem;font-weight:600;line-height:1.5;color:#111418;}
+
+  .reassure{
+    max-width:820px;margin:20px auto 0;padding:20px 26px;background:#fff;border:1px solid #ece7df;border-radius:20px;box-shadow:0 2px 10px rgba(17,20,24,.05);
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 28px;
+  }
+  .reassure ul{display:flex;flex-wrap:wrap;gap:12px 32px;}
+  .reassure li{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.95rem;color:#111418;}
+  .reassure li .icon{width:22px;height:22px;color:#1a8049;stroke-width:2;}
+
+  @media (max-width:900px){
+    .route{--rail:44px;--wp:34px;--truck:20px;}
+    .route-sign.start{width:auto;padding:0 12px;}
+    .route-steps{padding-top:48px;}
+    .wp{top:56px;font-size:.95rem;}
+    .rcard{padding:20px 18px;}
+    .rcard h3{font-size:1.25rem;}
+    .split{grid-template-columns:1fr;}
+    .split .you{padding:0 0 14px;border-right:0;border-bottom:1px solid #ece7df;}
+    .split .we{margin:14px 0 0;}
+    .reassure{flex-direction:column;align-items:stretch;padding:20px;}
+    .reassure .btn{width:100%;height:50px;}
+  }
 
   /* ---------- before / after ---------- */
   /* 16:9 frame, capped so frame + section heading fit one viewport height */
@@ -683,6 +786,10 @@
     <symbol id="q-cal" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></symbol>
     <symbol id="q-cal2" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h8M8 17h5"/></symbol>
     <symbol id="q-doc" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h4"/></symbol>
+    <symbol id="q-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="q-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></symbol>
+    <symbol id="q-hardhat" viewBox="0 0 24 24"><path d="M5 16a7 7 0 0 1 14 0M3 16h18v3H3zM11 9V6h2v3"/></symbol>
   </defs>
 </svg>
 
@@ -883,20 +990,95 @@
     </div>
   </section>
 
-  <!-- 6. HOW IT WORKS -->
-  <section class="section" id="how" aria-labelledby="how-title">
+  <!-- 6. HOW IT WORKS: straight road rail on the left -->
+  <section class="section how" id="how" aria-labelledby="how-title">
     <div class="container">
       <div class="section-head reveal">
-        <span class="eyebrow">How a Move Works</span>
-        <h2 id="how-title">Four steps. No surprises on move day.</h2>
-        <p class="lead">You should know what happens next at every point. Here it is.</p>
+        <span class="pill-eyebrow">The Process</span>
+        <h2 id="how-title">No Surprises on Move Day</h2>
+        <p class="lead">Here&rsquo;s exactly what happens, and when &mdash; so you always know what&rsquo;s next.</p>
       </div>
-      <ol class="steps">
-        <li class="reveal"><h3>Free On-Site Estimate</h3><p>We walk the home and both lots, measure the route, and give you a written price. Nothing to sign yet.</p></li>
-        <li class="reveal"><h3>Permits &amp; Route Planning</h3><p>Our office pulls the NCDOT permits and maps a path around low wires, tight turns, and weight-limited bridges.</p></li>
-        <li class="reveal"><h3>Transport Day</h3><p>Licensed drivers, pilot cars front and rear. You get a text when we leave and another when we arrive.</p></li>
-        <li class="reveal"><h3>Setup &amp; Final Inspection</h3><p>We block, level, anchor, and skirt it, then walk you through a final level check before we leave.</p></li>
-      </ol>
+
+      <div class="route" id="route">
+        <!-- decorative rail: grey road + yellow centreline; JS sizes it from the START/END signs -->
+        <div class="route-rail" id="rail" aria-hidden="true">
+          <svg class="rail-svg" id="railSvg" focusable="false">
+            <line id="roadBase"/>
+            <line id="roadCenter"/>
+          </svg>
+          <div class="rail-fill" id="railFill"></div>
+        </div>
+        <span class="route-sign start" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#q-pin"/></svg>Start</span>
+        <div class="route-truck" id="routeTruck" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <rect x="6" y="1.5" width="12" height="12" rx="1.6" fill="#ffc82c" stroke="#111418" stroke-width="1"/>
+            <rect x="7" y="14.5" width="10" height="8" rx="2.2" fill="#111418"/>
+            <rect x="8.6" y="16" width="6.8" height="2.6" rx=".8" fill="#dfe9f0"/>
+          </svg>
+        </div>
+
+        <ol class="route-steps">
+          <li class="rstep">
+            <span class="wp" aria-hidden="true">1</span>
+            <div class="rcard">
+              <div class="rtop"><span class="chip"><svg class="icon" aria-hidden="true"><use href="#q-clock"/></svg>Day 1</span><span class="count">Step 1 of 4</span></div>
+              <h3>Free On-Site Estimate</h3>
+              <p>We walk the home, check the site, and hand you a written number.</p>
+              <dl class="split">
+                <div class="you"><dt><svg class="icon" aria-hidden="true"><use href="#q-person"/></svg>You do:</dt><dd>Show us around.</dd></div>
+                <div class="we"><dt><svg class="icon" aria-hidden="true"><use href="#q-hardhat"/></svg>We do:</dt><dd>Measure, inspect, and quote in writing.</dd></div>
+              </dl>
+            </div>
+          </li>
+          <li class="rstep">
+            <span class="wp" aria-hidden="true">2</span>
+            <div class="rcard">
+              <div class="rtop"><span class="chip"><svg class="icon" aria-hidden="true"><use href="#q-clock"/></svg>1&ndash;2 weeks</span><span class="count">Step 2 of 4</span></div>
+              <h3>Permits &amp; Route Planning</h3>
+              <p>NCDOT permits, escort vehicles, and a route checked for low wires and tight turns.</p>
+              <dl class="split">
+                <div class="you"><dt><svg class="icon" aria-hidden="true"><use href="#q-person"/></svg>You do:</dt><dd>Nothing &mdash; just pick a date.</dd></div>
+                <div class="we"><dt><svg class="icon" aria-hidden="true"><use href="#q-hardhat"/></svg>We do:</dt><dd>File permits and plan the route.</dd></div>
+              </dl>
+            </div>
+          </li>
+          <li class="rstep">
+            <span class="wp" aria-hidden="true">3</span>
+            <div class="rcard">
+              <div class="rtop"><span class="chip"><svg class="icon" aria-hidden="true"><use href="#q-clock"/></svg>Move day</span><span class="count">Step 3 of 4</span></div>
+              <h3>Transport Day</h3>
+              <p>Licensed crew, pilot cars, and a home secured for the road.</p>
+              <dl class="split">
+                <div class="you"><dt><svg class="icon" aria-hidden="true"><use href="#q-person"/></svg>You do:</dt><dd>Clear personal items from shelves.</dd></div>
+                <div class="we"><dt><svg class="icon" aria-hidden="true"><use href="#q-hardhat"/></svg>We do:</dt><dd>Prep, secure, and haul.</dd></div>
+              </dl>
+            </div>
+          </li>
+          <li class="rstep">
+            <span class="wp" aria-hidden="true">4</span>
+            <div class="rcard">
+              <div class="rtop"><span class="chip"><svg class="icon" aria-hidden="true"><use href="#q-clock"/></svg>Same day</span><span class="count">Step 4 of 4</span></div>
+              <h3>Setup &amp; Final Inspection</h3>
+              <p>Blocked, leveled, tied down, and walked through with you before we leave.</p>
+              <dl class="split">
+                <div class="you"><dt><svg class="icon" aria-hidden="true"><use href="#q-person"/></svg>You do:</dt><dd>Walk it with us.</dd></div>
+                <div class="we"><dt><svg class="icon" aria-hidden="true"><use href="#q-hardhat"/></svg>We do:</dt><dd>Level, anchor, skirt, and sign off.</dd></div>
+              </dl>
+            </div>
+          </li>
+        </ol>
+
+        <span class="route-sign end" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#q-flag"/></svg>Home, Set &amp; Level</span>
+      </div>
+
+      <div class="reassure reveal">
+        <ul>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-truck"/></svg>One crew, start to finish</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#q-doc"/></svg>Written quote, no surprises</li>
+          <li><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>Fully licensed &amp; insured</li>
+        </ul>
+        <a class="btn btn-primary" href="#quote">Get My Free Estimate <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      </div>
     </div>
   </section>
 
@@ -1125,6 +1307,84 @@
       $('#' + b.getAttribute('aria-controls')).classList.toggle('open', !open);
     });
   });
+
+  /* ---- how a move works: scroll-driven progress down a straight rail ---- */
+  (function initRoute(){
+    var route = $('#route');
+    if (!route) return;
+    var mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var rail = $('#rail'), svg = $('#railSvg'), fill = $('#railFill'), truck = $('#routeTruck');
+    var roadBase = $('#roadBase'), roadCenter = $('#roadCenter');
+    var items = $$('.rstep', route), wps = $$('.wp', route);
+    var startSign = $('.route-sign.start', route), endSign = $('.route-sign.end', route);
+    var y0 = 0, H = 1, wpY = [], cur = 0, target = 0, raf = 0, reached = [], LERP = 0.12;
+
+    /* cached geometry: rebuilt on load / fonts / debounced resize, never per scroll */
+    function build(){
+      var rb = route.getBoundingClientRect(), rr = rail.getBoundingClientRect();
+      var x = rr.width / 2;
+      y0 = startSign.getBoundingClientRect().bottom - rb.top;
+      var y1 = endSign.getBoundingClientRect().top - rb.top;
+      H = Math.max(1, y1 - y0);
+      svg.setAttribute('viewBox', '0 0 ' + rr.width + ' ' + rb.height);
+      [roadBase, roadCenter].forEach(function(l){
+        l.setAttribute('x1', x); l.setAttribute('x2', x); l.setAttribute('y1', y0); l.setAttribute('y2', y1);
+      });
+      fill.style.left = (x - 4) + 'px';
+      fill.style.top = y0 + 'px';
+      fill.style.height = H + 'px';
+      wpY = wps.map(function(w){ var r = w.getBoundingClientRect(); return r.top + r.height / 2 - rb.top; });
+    }
+
+    /* the truck sits on the reference line (60% of the viewport height) */
+    function targetP(){
+      var y = window.innerHeight * 0.6 - route.getBoundingClientRect().top;
+      return Math.max(0, Math.min(1, (y - y0) / H));
+    }
+
+    function apply(){
+      var half = truck.offsetWidth / 2;
+      fill.style.transform = 'scaleY(' + cur.toFixed(4) + ')';
+      truck.style.transform = 'translate3d(' + (rail.offsetWidth / 2 - half).toFixed(1) + 'px,' + (y0 + cur * H - half).toFixed(1) + 'px,0)';
+      var curY = y0 + cur * H, last = -1;
+      for (var i = 0; i < items.length; i++){
+        var on = reached[i] ? curY >= wpY[i] - 8 : curY >= wpY[i] - 2;   /* small hysteresis */
+        if (on !== !!reached[i]){ reached[i] = on; items[i].classList.toggle('reached', on); }
+        if (on) last = i;
+      }
+      /* only the most recently reached step is "active" */
+      for (var j = 0; j < items.length; j++) items[j].classList.toggle('active', j === last);
+    }
+    function tick(){
+      raf = 0;
+      cur += (target - cur) * LERP;
+      if (Math.abs(target - cur) * H < .3) cur = target;
+      apply();
+      if (cur !== target) raf = requestAnimationFrame(tick);
+    }
+    function onScroll(){ target = targetP(); if (!raf) raf = requestAnimationFrame(tick); }
+
+    if (mqReduce.matches){
+      /* rail fully yellow, every waypoint filled, cards full opacity, truck parked at the end flag, no active emphasis */
+      build();
+      cur = target = 1;
+      reached = [];
+      apply();
+      items.forEach(function(it){ it.classList.remove('active'); });
+      window.addEventListener('resize', function(){ build(); apply(); items.forEach(function(it){ it.classList.remove('active'); }); }, {passive:true});
+      return;
+    }
+
+    root.classList.add('route-js');
+    build();
+    target = cur = targetP();
+    apply();
+    var t = 0;
+    window.addEventListener('scroll', onScroll, {passive:true});
+    window.addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(function(){ build(); onScroll(); }, 150); }, {passive:true});
+    window.addEventListener('load', function(){ build(); onScroll(); });
+    if (document.fonts && document.fonts.ready){ document.fonts.ready.then(function(){ build(); onScroll(); }); }
+  })();
 
   /* ---- before / after ---- */
   var ba = $('#baBox'), baPos = 50, baDrag = false;
